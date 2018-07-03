@@ -4,7 +4,7 @@ function [result, problem] = optimize(varargin)
 % pulse sequence subject to constraints on power, maximum gradient and maximum slew rate.
 %
 % If you use this in your research, please cite the following paper:
-% Jens Sjölund, Filip Szczepankiewicz, Markus Nilsson, Daniel Topgaard, Carl-Fredrik Westin, Hans Knutsson,
+% Jens Sjï¿½lund, Filip Szczepankiewicz, Markus Nilsson, Daniel Topgaard, Carl-Fredrik Westin, Hans Knutsson,
 % "Constrained optimization of gradient waveforms for generalized diffusion encoding",
 % Journal of Magnetic Resonance, Volume 261, December 2015, Pages 157-168, ISSN 1090-7807,
 % http://dx.doi.org/10.1016/j.jmr.2015.10.012.
@@ -17,7 +17,7 @@ function [result, problem] = optimize(varargin)
 % Download PDF at: https://goo.gl/vVGQq2
 %
 %
-% Written by Jens Sjölund, jens.sjolund@liu.se / jens.sjolund@elekta.com
+% Written by Jens Sjï¿½lund, jens.sjolund@liu.se / jens.sjolund@elekta.com
 % Maxwell compensation by Filip Szczepankiewicz, filip.szczepankiewicz@med.lu.se
 
 %% Initialize parameters
@@ -37,7 +37,8 @@ options = optimoptions('fmincon','Algorithm','sqp',...
 warning('off', 'optimlib:fmincon:ConvertingToFull'); %Disables warning when SQP converts sparse matrices to full
 
 %% Set up constraints
-[A, b, firstDerivativeMatrix, secondDerivativeMatrix] = defineLinearInequalityConstraints(problem.N, problem.gMaxConstraint, problem.sMaxConstraint, problem.useMaxNorm);
+% granty edit for eddy current nulled sequence...
+[A, b, firstDerivativeMatrix, secondDerivativeMatrix] = defineLinearInequalityConstraints(problem.N, problem.gMaxConstraint, problem.sMaxConstraint, problem.useMaxNorm, problem.zeroGradientAtIndex, problem.dt, problem.ecc_flag, problem.Lx, problem.Ly, problem.Lz);
 
 [Aeq, beq] = defineLinearEqualityConstraints(problem.N, problem.zeroGradientAtIndex, problem.enforceSymmetry, firstDerivativeMatrix);
 
@@ -114,7 +115,7 @@ result.dt  = result.optimizerProblem.dt/1000;   % s
 
 end
 
-function [A, b, firstDerivativeMatrix, secondDerivativeMatrix] = defineLinearInequalityConstraints(N, gMaxConstraint, sMaxConstraint, useMaxNorm)
+function [A, b, firstDerivativeMatrix, secondDerivativeMatrix] = defineLinearInequalityConstraints(N, gMaxConstraint, sMaxConstraint, useMaxNorm,zeroGradientAtIndex, dt, ecc_flag, lx, ly, lz)
 firstDerivativeMatrix = -diag(ones(N,1))+diag(ones(N-1,1),1); % Center difference, shifted forward by half a step. Ghost points implemented as zero rows.
 firstDerivativeMatrix = firstDerivativeMatrix(1:end-1,:);
 firstDerivativeMatrix = sparse(firstDerivativeMatrix); %SQP doesn't take advantage of this
@@ -135,9 +136,54 @@ A2 = kron(eye(3),secondDerivativeMatrix);
 A2 = [A2 zeros(size(A2,1),1)]; %Add column of zeros for s
 b2 = sMaxConstraint*ones(size(A2,1),1);
 
-A = [A1;-A1;A2;-A2]; %abs(Ax)<=b is equivalent to -Ax<=b && Ax<=b
-b = [b1;b1;b2;b2];
+%Granty edit to add eddy current nulled constraint
+if(ecc_flag)
+    A3 = [];
+    b3 = [];
+    % eddy current constraints at time constants 
+    bx = 10*ones(size(lx));
+    by = 10*ones(size(ly));
+    bz = 10*ones(size(lz));
+    for i = 1:3
+        ec = [];
+        At = [];
+        if(i==1&&~isempty(lx))       
+            ec = exp(-bsxfun(@times,[0:N-1]*dt,1./lx));
+            b3 = [b3 ; bx ;bx ;bx];
+        end
+        if(i==2&&~isempty(ly))
+            ec = exp(-bsxfun(@times,[0:N-1]*dt,1./ly));
+            b3 = [b3; by; by; by];
+        end
+        if(i==3&&~isempty(lz))
+            ec = exp(-bsxfun(@times,[0:N-1]*dt,1./lz));
+            b3 = [b3; bz; bz; bz];
+        end
+
+        if(~isempty(ec))
+            H = fliplr(ec); % really?? I should just update the ec equation
+            P = zeros(N,1); % we want the real slew rate as played on scanner
+            P(1:zeroGradientAtIndex(1)) = 1;
+            P(zeroGradientAtIndex(end):end) = -1;
+            P = diag(P);
+            At = H*P*secondDerivativeMatrix*1000;% scaling doesn't really matter
+            tmp = zeros(1,3);
+            tmp(i) = 1;
+            At = kron(diag(tmp),At);
+            At = [At zeros(size(At,1),1)]; %Add column of zeros for s
+            
+        end
+        A3 = [A3 ; At];
+    end
+else
+    A3 = [];
+    b3 = [];
 end
+
+A = [A1;-A1;A2;-A2;A3;-A3]; %abs(Ax)<=b is equivalent to -Ax<=b && Ax<=b
+b = [b1;b1;b2;b2;b3;b3];
+end
+
 
 function [Aeq, beq] = defineLinearEqualityConstraints(N, zeroGradientAtIndex, enforceSymmetry, firstDerivativeMatrix)
 Aeq = zeros(2+length(zeroGradientAtIndex),N);

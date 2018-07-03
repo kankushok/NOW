@@ -14,7 +14,7 @@ clear
 % redoIfFailed = true;
 % name = 'NOW'
 % 
-% Written by Jens Sjölund and Filip Szczepankiewicz
+% Written by Jens Sjï¿½lund and Filip Szczepankiewicz
 
 
 %%  PREP
@@ -24,13 +24,15 @@ clear
 problem = optimizationProblem;
 
 % Define the hardware specifications of the gradient system
-problem.gMax =  80; % Maximal gradient amplitude, in [mT/m]
+problem.gMax =  70; % Maximal gradient amplitude, in [mT/m]
 problem.sMax = 100; % Maximal gradient slew, in [T/(sm)]
 
 % Request encoding and pause times based on sequence timing in [ms]
-problem.durationFirstPartRequested    = 51;
-problem.durationSecondPartRequested   = 40;
-problem.durationZeroGradientRequested = 8;
+problem.durationFirstPartRequested    = 35;
+problem.durationSecondPartRequested   = 28.5;
+problem.durationZeroGradientRequested = 10;
+problem.ecc_flag = 1;
+problem.Ly = 150;
 
 % Define the b-tensor shape in arbitrary units. This example uses an
 % isotropic b-tensor that results in spherical tensor encoding (STE).
@@ -41,10 +43,10 @@ problem.targetTensor = eye(3);
 % The basic code supports N = 50, 100, and 200. However, other values
 % can be calculated using the createConstraintGradientFunction in the
 % private folder.
-problem.N = 50;
+problem.N = 77;
 
 % Set the balance between energy consumption and efficacy
-problem.eta = 0.5; %In interval (0,1]
+problem.eta = 0.8; %In interval (0,1]
 
 % Make a new optimizationProblem object using the updated specifications.
 % This explicit call is necessary to update all private variables.

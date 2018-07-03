@@ -30,6 +30,11 @@ classdef optimizationProblem
         x0 = [];
         doMaxwellComp = 1;
         MaxwellIndex = 60;
+        % granty addition for ecc
+        Lx = [];% eddy current time constants on Gx
+        Ly = [];% eddy current time constants on Gy
+        Lz = [];% eddy current time constants on Gz
+        ecc_flag = 0;% perform eddy current correction
     end
     
     properties (SetAccess = private)
