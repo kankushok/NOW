@@ -38,7 +38,7 @@ warning('off', 'optimlib:fmincon:ConvertingToFull'); %Disables warning when SQP 
 
 %% Set up constraints
 % granty edit for eddy current nulled sequence...
-[A, b, firstDerivativeMatrix, secondDerivativeMatrix] = defineLinearInequalityConstraints(problem.N, problem.gMaxConstraint, problem.sMaxConstraint, problem.useMaxNorm, problem.zeroGradientAtIndex, problem.dt, problem.ecc_flag, problem.Lx, problem.Ly, problem.Lz);
+[A, b, firstDerivativeMatrix, secondDerivativeMatrix] = defineLinearInequalityConstraints(problem.N, problem.gMaxConstraint, problem.sMaxConstraint, problem.useMaxNorm, problem.zeroGradientAtIndex, problem.dt, problem.ecc_flag, problem.Lx, problem.Ly, problem.Lz, problem.bx, problem.by, problem.bz);
 
 [Aeq, beq] = defineLinearEqualityConstraints(problem.N, problem.zeroGradientAtIndex, problem.enforceSymmetry, firstDerivativeMatrix);
 
@@ -115,7 +115,7 @@ result.dt  = result.optimizerProblem.dt/1000;   % s
 
 end
 
-function [A, b, firstDerivativeMatrix, secondDerivativeMatrix] = defineLinearInequalityConstraints(N, gMaxConstraint, sMaxConstraint, useMaxNorm,zeroGradientAtIndex, dt, ecc_flag, lx, ly, lz)
+function [A, b, firstDerivativeMatrix, secondDerivativeMatrix] = defineLinearInequalityConstraints(N, gMaxConstraint, sMaxConstraint, useMaxNorm,zeroGradientAtIndex, dt, ecc_flag, lx, ly, lz, bx, by, bz)
 firstDerivativeMatrix = -diag(ones(N,1))+diag(ones(N-1,1),1); % Center difference, shifted forward by half a step. Ghost points implemented as zero rows.
 firstDerivativeMatrix = firstDerivativeMatrix(1:end-1,:);
 firstDerivativeMatrix = sparse(firstDerivativeMatrix); %SQP doesn't take advantage of this
@@ -141,9 +141,9 @@ if(ecc_flag)
     A3 = [];
     b3 = [];
     % eddy current constraints at time constants 
-    bx = 10*ones(size(lx));
-    by = 10*ones(size(ly));
-    bz = 10*ones(size(lz));
+%     bx = 1/10*ones(size(lx));
+%     by = 1/10*ones(size(ly));
+%     bz = 1/10*ones(size(lz));
     for i = 1:3
         ec = [];
         At = [];
@@ -166,7 +166,7 @@ if(ecc_flag)
             P(1:zeroGradientAtIndex(1)) = 1;
             P(zeroGradientAtIndex(end):end) = -1;
             P = diag(P);
-            At = H*P*secondDerivativeMatrix*1000;% scaling doesn't really matter
+            At = H*P*secondDerivativeMatrix;
             tmp = zeros(1,3);
             tmp(i) = 1;
             At = kron(diag(tmp),At);

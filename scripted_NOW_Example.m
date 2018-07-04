@@ -32,8 +32,10 @@ problem.durationFirstPartRequested    = 35;
 problem.durationSecondPartRequested   = 28.5;
 problem.durationZeroGradientRequested = 10;
 problem.ecc_flag = 1;
-problem.Ly = 150;
-
+problem.Ly = [20, 50, 150]'; % eddy current time constants on y axis in ms
+problem.Lx = 150;
+problem.by = [1, 1, 1/10]'; % tolerance on eddy current amplitude
+problem.bx = [1/100]; 
 % Define the b-tensor shape in arbitrary units. This example uses an
 % isotropic b-tensor that results in spherical tensor encoding (STE).
 problem.targetTensor = eye(3);
@@ -46,7 +48,7 @@ problem.targetTensor = eye(3);
 problem.N = 77;
 
 % Set the balance between energy consumption and efficacy
-problem.eta = 0.8; %In interval (0,1]
+problem.eta = 0.5; %In interval (0,1]
 
 % Make a new optimizationProblem object using the updated specifications.
 % This explicit call is necessary to update all private variables.

@@ -1,7 +1,10 @@
 function createConstraintGradientFunction(N,useMaxNorm)
 q = sym('q',[3*N,1]);
 targetTensor = sym('targetTensor',[3,3]);
-s_vec = sym('s_vec', [N-1,1], 'real');
+%s_vec = sym('s_vec', [N-1,1], 'real'); granty edit since this line is
+%broken in MATLAB 2013b
+s_vec = sym('s_vec', [N-1,1]);
+assume(s_vec,'real');
 
 syms s B gMax tolIsotropy integralConstraint c1 c2 tolMaxwell real
 integrationMatrix = eye(N);

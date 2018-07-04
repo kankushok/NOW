@@ -34,6 +34,9 @@ classdef optimizationProblem
         Lx = [];% eddy current time constants on Gx
         Ly = [];% eddy current time constants on Gy
         Lz = [];% eddy current time constants on Gz
+        bx = [];% tolerance on Lx
+        by = [];% tolerance on Ly
+        bz = [];% tolerance on Lz
         ecc_flag = 0;% perform eddy current correction
     end
     
