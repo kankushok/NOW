@@ -57,11 +57,12 @@ while ~optimizationSuccess && iter <= 10
     dispInfo(problem, iter)
     
     tic
-    
-	[x,fval,exitflag,output,lambda,grad]  = fmincon(@(x) objFun(x), x0, A,b,Aeq,beq,[],[],@(x) feval(nonlconFileName,x,problem.tolIsotropy, ...
+    exitflag = 0;
+    try
+        [x,fval,exitflag,output,lambda,grad]  = fmincon(@(x) objFun(x), x0, A,b,Aeq,beq,[],[],@(x) feval(nonlconFileName,x,problem.tolIsotropy, ...
 											problem.gMaxConstraint, problem.integralConstraint,problem.targetTensor, problem.tolMaxwell, ...
-											problem.s_vec),options);
-	
+											problem.s_vec),options);        
+    end
     optimizationTime = toc;
     
     disp(['Optimization took ' num2str(optimizationTime, 3) 's.']);

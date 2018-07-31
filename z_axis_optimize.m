@@ -28,9 +28,6 @@ cvx_begin
         % q-trajectory orthogonality
         norm(transpose(qx)*qzi) <= 200;
         norm(transpose(qy)*qzi) <= 200;
-        % gradient-trajectory must start and end at 0
-        %A1(1,:)*qzi == 0;
-        %A1(end,:)*qzi == 0;
         % gradient is zero during RF pulse
         A1(zGI,:)*qzi == 0;
         % gradient limitation
@@ -42,10 +39,7 @@ cvx_begin
         % q-space trajectory starts and ends at 0
         qzi(end) == 0;
         qzi(1) == 0;
-        % eddy current
-        %abs(fliplr(ec)*pol*secondDerivativeMatrix*qzi) <= 100;
-        %testx = conv(pol.*(A2*qzi),ec);
-        %abs(testx(N)) <= 1e-9;
+        
 cvx_end
 
 qzf = qzi/sqrt((qzi'*qzi)/(qx'*qx));
