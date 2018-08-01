@@ -1,5 +1,5 @@
 # NOW - Numerical Optimization of gradient Waveforms
-A MATLAB package for optimization of gradient waveforms that enable q-space trajectory imaging (QTI).
+A MATLAB package for optimization of gradient waveforms that enable q-space trajectory imaging (QTI) with options to compensate for eddy current distortions and Maxwell terms (Concomitant fields).
 
 ## Installation
 1. Clone or download this repository.
