@@ -4,6 +4,6 @@ function [f ,g] = objFun(x)
     g(end) = -1;  
     
     currentTime = toc;
-    if( currentTime > 10)
+    if( currentTime > 1000)
         error('optimization timed out');
     end
